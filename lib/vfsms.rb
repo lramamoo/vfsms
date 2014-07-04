@@ -21,14 +21,14 @@ module Vfsms
 
   def self.send_sms(opts = {})
     @config ||= Vfsms.config(opts)
-  
+
     message = opts[:message]
     from = opts[:from]
     send_to = opts[:send_to]
 
-    return false, 'Phone Number is too short' if send_to.to_s.length < 10
-    return false, 'Phone Number is too long' if send_to.to_s.length > 10
-    return false, 'Phone Number should be numerical value' unless send_to.to_i.to_s == send_to.to_s
+    # return false, 'Phone Number is too short' if send_to.to_s.length < 10
+    # return false, 'Phone Number is too long' if send_to.to_s.length > 10
+    # return false, 'Phone Number should be numerical value' unless send_to.to_i.to_s == send_to.to_s
     return false, 'Message should be at least 10 characters long' if message.to_s.length < 11
     return false, 'Message should be less than 200 characters long' if message.to_s.length > 200
 
@@ -45,16 +45,29 @@ module Vfsms
       <!DOCTYPE MESSAGE SYSTEM 'http://127.0.0.1/psms/dtd/messagev12.dtd'>
       <MESSAGE VER='1.2'>
       <USER USERNAME='#{opts[:username]}' PASSWORD='#{opts[:password]}'/>
-      <SMS UDH='0' CODING='1' TEXT='#{opts[:message]}' PROPERTY='0' ID='1'>
-          <ADDRESS FROM='#{opts[:from]}' TO='#{opts[:send_to]}' SEQ='1' TAG='66,883'/>
-      </SMS>
-      </MESSAGE>"
+      #{sms_msgs(opts)} </MESSAGE>"
+    end
+
+    def self.sms_msgs(opts)
+      send_to_list = opts[:send_to]
+      send_to_count = 0
+      msg = ""
+      unless send_to_list.empty?
+        while send_to_count < send_to_list.count
+        msg = msg + "<SMS UDH='0' CODING='1' TEXT='#{opts[:message]}' PROPERTY='0' ID='#{send_to_count + 1}'>
+        <ADDRESS FROM='#{opts[:from]}' TO='#{send_to_list[send_to_count]}' SEQ='1' TAG='66,883'/>
+        </SMS>
+        "
+        send_to_count = send_to_count + 1
+        end
+      end
+      msg
     end
 
     def self.call_api(opts)
       params = {'data' => format_msg(opts), 'action' => 'send'}
       res = Net::HTTP.post_form(
-        URI.parse(opts[:url]), 
+        URI.parse(opts[:url]),
         params
       )
 
