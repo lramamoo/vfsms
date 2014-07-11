@@ -53,7 +53,7 @@ module Vfsms
       send_to_count = 0
       msg = ""
       unless send_to_list.empty?
-        while send_to_count < send_to_list.count
+        while send_to_count < send_to_list.length
         msg = msg + "<SMS UDH='0' CODING='1' TEXT='#{opts[:message]}' PROPERTY='0' ID='#{send_to_count + 1}'>
         <ADDRESS FROM='#{opts[:from]}' TO='#{send_to_list[send_to_count]}' SEQ='1' TAG='66,883'/>
         </SMS>
