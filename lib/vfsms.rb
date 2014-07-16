@@ -13,6 +13,10 @@ initializer format
 =end
 
 module Vfsms
+  class << self
+    attr_accessor :logger
+  end
+
   def self.config(opts = {})
     @config ||= Vfsms::Config.new(opts)
     yield(@config) if block_given?
@@ -39,7 +43,6 @@ module Vfsms
   end
 
   private
-
     def self.format_msg(opts = {})
       "<?xml version='1.0' encoding='ISO-8859-1'?>
       <!DOCTYPE MESSAGE SYSTEM 'http://127.0.0.1/psms/dtd/messagev12.dtd'>
