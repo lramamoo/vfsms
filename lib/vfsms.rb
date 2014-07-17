@@ -77,6 +77,7 @@ module Vfsms
       case res
       when Net::HTTPSuccess, Net::HTTPRedirection
         if res.body.include?('GUID')
+          self.logger.info("SMS sent to: " + opts[:send_to].join(','))
           return true, nil
         end
         return false, res.body
