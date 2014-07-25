@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'logger'
 
 describe Vfsms do
   describe "Initialization" do
@@ -50,12 +51,27 @@ describe Vfsms do
 
   context "sms_msgs" do
     it "should generate one sms block for each number" do
-      msg = Vfsms.sms_msgs({:send_to => ['9842214059','9538321404'],:message => 'Hi', :from => 'Sender'})
-      msg.should == "<SMS UDH='0' CODING='1' TEXT='Hi' PROPERTY='0' ID='1'>\n        <ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='66,883'/>\n        </SMS>\n        <SMS UDH='0' CODING='1' TEXT='Hi' PROPERTY='0' ID='2'>\n        <ADDRESS FROM='Sender' TO='9538321404' SEQ='1' TAG='66,883'/>\n        </SMS>\n        "
+      msg = Vfsms.sms_msgs({:send_to => ['9842214059','9538321404'],:message => 'Hi', :from => 'Sender', :action => 'creation'})
+      msg.should == "<ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='creation'/>\n        <ADDRESS FROM='Sender' TO='9538321404' SEQ='2' TAG='creation'/>\n        "
       msg = Vfsms.sms_msgs({:send_to => [],:message => 'Hi', :from => 'Sender'})
       msg.should == ""
-      msg = Vfsms.sms_msgs({:send_to => ['9842214059'],:message => 'Hi', :from => 'Sender'})
-      msg.should == "<SMS UDH='0' CODING='1' TEXT='Hi' PROPERTY='0' ID='1'>\n        <ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='66,883'/>\n        </SMS>\n        "
+      msg = Vfsms.sms_msgs({:send_to => ['9842214059'],:message => 'Hi', :from => 'Sender', :action => 'creation'})
+      msg.should =="<ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='creation'/>\n        "
+    end
+  end
+
+  context "filter_sms_sent_nos" do
+    it "should remove nos with error code" do
+      Vfsms.logger = Logger.new(STDOUT).tap { |l| l.level = Logger::DEBUG }
+      response = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n <MESSAGEACK> \n <GUID GUID=\"ke7pk164089942f410014boemkRATNAKARBN\" SUBMITDATE=\"2014-07-25 20:16:40\" ID=\"0\">\n</GUID>\n</MESSAGEACK>\n"
+      nos = Vfsms.filter_sms_sent_nos(response,{:send_to => ['9842214059','9538321404']})
+      nos.should == ['9842214059','9538321404']
+      response = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n <MESSAGEACK> \n <GUID GUID=\"ke7pk164089942f410014boemkRATNAKARBN\" SUBMITDATE=\"2014-07-25 20:16:40\" ID=\"0\">\n <ERROR SEQ=\"1\" CODE=\"28676\" /> \n</GUID>\n</MESSAGEACK>\n"
+      nos = Vfsms.filter_sms_sent_nos(response,{:send_to => ['9842214059','9538321404']})
+      nos.should == ['9538321404']
+      response = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n <MESSAGEACK> \n <GUID GUID=\"ke7pk164089942f410014boemkRATNAKARBN\" SUBMITDATE=\"2014-07-25 20:16:40\" ID=\"0\">\n <ERROR SEQ=\"2\" CODE=\"28676\" /> \n</GUID>\n</MESSAGEACK>\n"
+      nos = Vfsms.filter_sms_sent_nos(response,{:send_to => ['9842214059','9538321404']})
+      nos.should == ['9842214059']
     end
   end
 end

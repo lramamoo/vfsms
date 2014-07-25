@@ -48,7 +48,10 @@ module Vfsms
       <!DOCTYPE MESSAGE SYSTEM 'http://127.0.0.1/psms/dtd/messagev12.dtd'>
       <MESSAGE VER='1.2'>
       <USER USERNAME='#{opts[:username]}' PASSWORD='#{opts[:password]}'/>
-      #{sms_msgs(opts)} </MESSAGE>"
+      <SMS UDH='0' CODING='1' TEXT='#{opts[:message]}' PROPERTY='0' ID='0'>
+      #{sms_msgs(opts)}
+      </SMS>
+      </MESSAGE>"
     end
 
     def self.sms_msgs(opts)
@@ -57,14 +60,26 @@ module Vfsms
       msg = ""
       unless send_to_list.empty?
         while send_to_count < send_to_list.count
-        msg = msg + "<SMS UDH='0' CODING='1' TEXT='#{opts[:message]}' PROPERTY='0' ID='#{send_to_count + 1}'>
-        <ADDRESS FROM='#{opts[:from]}' TO='#{send_to_list[send_to_count]}' SEQ='1' TAG='66,883'/>
-        </SMS>
+        msg = msg + "<ADDRESS FROM='#{opts[:from]}' TO='#{send_to_list[send_to_count]}' SEQ='#{send_to_count + 1}' TAG='#{opts[:action]}'/>
         "
         send_to_count = send_to_count + 1
         end
       end
       msg
+    end
+
+    def self.filter_sms_sent_nos(response,opts)
+      send_to_count = opts[:send_to].count
+      cycle = 0
+      mobile_numbers = opts[:send_to]
+      while cycle < send_to_count
+        if response.include?("ERROR SEQ=\"#{cycle + 1}\"")
+          self.logger.info("Error Occured for number : " + opts[:send_to][cycle].to_s)
+          mobile_numbers = mobile_numbers - [opts[:send_to][cycle]]
+        end
+        cycle = cycle + 1
+      end
+      mobile_numbers
     end
 
     def self.call_api(opts)
@@ -73,11 +88,11 @@ module Vfsms
         URI.parse(opts[:url]),
         params
       )
-
       case res
       when Net::HTTPSuccess, Net::HTTPRedirection
         if res.body.include?('GUID')
-          self.logger.info("SMS sent to: " + opts[:send_to].join(','))
+          mobile_numbers = filter_sms_sent_nos(res.body,opts)
+          self.logger.info("SMS sent to: " + mobile_numbers.join(',')) unless mobile_numbers.empty?
           return true, nil
         end
         return false, res.body
