@@ -7,12 +7,53 @@ describe Vfsms do
     it "should successfully initialize with the correct version" do
       Vfsms.config(:opts => {}).should_not be_nil
     end
+
+    it "should successfully initialize with the proxy parameters" do
+      vfsms = Vfsms.config do |config|
+        config.username = 'c1111'
+        config.password = 'vfpassword'
+        config.url = 'http://api.myvf.com'
+
+        config.proxy_host = "dwar1.abc.com"
+        config.proxy_port = "8080"
+        config.proxy_user = "abc"
+        config.proxy_password = "proxypassword"
+      end
+
+      vfsms.username.should_not be_nil
+      vfsms.password.should_not be_nil
+      vfsms.url.should_not be_nil
+
+      vfsms.proxy_host.should_not be_nil
+      vfsms.proxy_port.should_not be_nil
+      vfsms.proxy_user.should_not be_nil
+      vfsms.proxy_password.should_not be_nil
+    end
   end
 
   describe "Send SMS" do
-
     it "should send SMS when correct parameters" do
       # Vfsms.send_sms({:from => 'JUSTBOOK', :send_to => ['9538321404'], :message => 'Test Message'}).should be_true
+    end
+  end
+
+  describe "Send SMS with proxy" do
+    before(:each) do
+      Vfsms.config do |config|
+        config.username = 'c1111'
+        config.password = 'vfpassword'
+        config.url = 'http://api.myvf.com'
+
+        config.proxy_host = "dwar1.abc.com"
+        config.proxy_port = "8080"
+        config.proxy_user = "abc"
+        config.proxy_password = "proxypassword"
+      end
+    end
+
+    it "should send SMS through proxy when correct parameters are passed" do
+      msg = Vfsms.sms_msgs({:send_to => ['9842214059'],:message => 'Hi', :from => 'Sender', :action => 'creation'})
+      msg.should =="<ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='creation'/>\n        "
     end
   end
 
