@@ -90,13 +90,13 @@ module Vfsms
 
     def self.call_api(opts)
       params = {'data' => format_msg(opts), 'action' => 'send'}
-      if @config.proxy_host.nil?
+      if opts[:proxy_host].nil?
         res = Net::HTTP.post_form(
           URI.parse(opts[:url]),
           params
         )
       else
-        res = Net::HTTP::Proxy(@config.proxy_host, @config.proxy_port, @config.proxy_user, @config.proxy_password).post_form(
+        res = Net::HTTP::Proxy(opts[:proxy_host], opts[:proxy_port], opts[:proxy_user], opts[:proxy_password]).post_form(
           URI.parse(opts[:url]),
           params
         )
