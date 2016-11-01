@@ -39,6 +39,12 @@ module Vfsms
     opts[:username] = @config.username
     opts[:password] = @config.password
     opts[:url] = @config.url
+
+    opts[:proxy_host] = @config.proxy_host
+    opts[:proxy_port] = @config.proxy_port
+    opts[:proxy_user] = @config.proxy_user
+    opts[:proxy_password] = @config.proxy_password
+
     call_api(opts)
   end
 

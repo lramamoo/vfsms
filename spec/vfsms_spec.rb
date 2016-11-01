@@ -50,11 +50,6 @@ describe Vfsms do
         config.proxy_password = "proxypassword"
       end
     end
-
-    it "should send SMS through proxy when correct parameters are passed" do
-      msg = Vfsms.sms_msgs({:send_to => ['9842214059'],:message => 'Hi', :from => 'Sender', :action => 'creation'})
-      msg.should =="<ADDRESS FROM='Sender' TO='9842214059' SEQ='1' TAG='creation'/>\n        "
-    end
   end
 
   describe "To Number validations" do
