@@ -34,7 +34,7 @@ module Vfsms
     # return false, 'Phone Number is too long' if send_to.to_s.length > 10
     # return false, 'Phone Number should be numerical value' unless send_to.to_i.to_s == send_to.to_s
     return false, 'Message should be at least 10 characters long' if message.to_s.length < 11
-    return false, 'Message should be less than 200 characters long' if message.to_s.length > 200
+    return false, 'Message should be less than 400 characters long' if message.to_s.length > 400
 
     opts[:username] = @config.username
     opts[:password] = @config.password

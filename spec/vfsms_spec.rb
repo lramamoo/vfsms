@@ -78,9 +78,9 @@ describe Vfsms do
       Vfsms.send_sms({:from => 'JUSTBOOK', :send_to => ['9538321404']}).should == ([false, "Message should be at least 10 characters long"])
     end
 
-    it "should not send SMS if message is bigger than 200 characters" do
-      Vfsms.send_sms({:from => 'JUSTBOOK', :send_to => ['9538321404'], :message => '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890'})
-        .should == ([false, "Message should be less than 200 characters long"])
+    it "should not send SMS if message is bigger than 400 characters" do
+      Vfsms.send_sms({:from => 'JUSTBOOK', :send_to => ['9538321404'], :message => "%401i" % "12"})
+        .should == ([false, "Message should be less than 400 characters long"])
     end
 
   end
